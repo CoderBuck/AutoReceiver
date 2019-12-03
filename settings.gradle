@@ -1,2 +1,2 @@
-include ':auto-receiver-sample', ':auto-receiver-compiler', ':auto-receiver-annotation'
+include ':auto-receiver-sample', ':auto-receiver-compiler', ':auto-receiver-annotation', ':auto-receiver'
 rootProject.name='AutoReceiver'
