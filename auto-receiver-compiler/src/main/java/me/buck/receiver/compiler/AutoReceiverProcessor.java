@@ -115,7 +115,7 @@ public class AutoReceiverProcessor extends AbstractProcessor {
                     .addParameter(CLASS_Target, "target")
                     .addStatement("super(context)")
                     .addStatement("$L = $L", FIELD_mTarget, "target")
-                    .addStatement("mIsLocal = $L", true);
+                    .addStatement("mIsLocal = $L", isLocal);
             items.forEach(item ->
                     constructor.addStatement("mFilter.addAction($S)", item.actionName)
             );

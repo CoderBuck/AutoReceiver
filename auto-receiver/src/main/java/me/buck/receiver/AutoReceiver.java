@@ -1,7 +1,6 @@
 package me.buck.receiver;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 
 import java.lang.reflect.Constructor;
@@ -14,18 +13,43 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AutoReceiver {
 
-    private static Map<Activity, SimpleReceiver> sRegistMap = new ConcurrentHashMap<>();
+    private static Map<Object, SimpleReceiver> sLocalRegistMap = new ConcurrentHashMap<>();
+    private static Map<Object, SimpleReceiver> sGlobalRegistMap = new ConcurrentHashMap<>();
 
-    public static void regist(Activity activity) {
-        Context context = activity;
-        Activity target = activity;
-        if (sRegistMap.get(target) != null) return;
+    private static String END_FIX_LOCAL = "_LocalReceiver";
+    private static String END_FIX_GLOBAL = "_GlobalReceiver";
+
+    public static void bindLocal(Activity activity) {
+        bind(activity, activity, true);
+    }
+
+    public static void bindGlobal(Activity activity) {
+        bind(activity, activity, false);
+    }
+
+    public static void unbindLocal(Activity activity) {
+        unbind(activity,true);
+    }
+
+    public static void unbindGlobal(Activity activity) {
+        unbind(activity, false);
+    }
+
+    public static void bind(Context context, Object target, boolean isLocal) {
+        if (isLocal && sLocalRegistMap.get(target) != null) return;
+        if (!isLocal && sGlobalRegistMap.get(target) != null) return;
+        String endFix = isLocal ? END_FIX_LOCAL : END_FIX_GLOBAL;
+
         try {
-            Class<?> clazz = Class.forName(activity.getClass().getCanonicalName() + "_LocalReceiver");
+            Class<?> clazz = Class.forName(target.getClass().getCanonicalName() + endFix);
             Constructor<?> constructor = clazz.getConstructor(Context.class, target.getClass());
             SimpleReceiver receiver = (SimpleReceiver) constructor.newInstance(context, target);
             receiver.register();
-            sRegistMap.put(activity, receiver);
+            if (isLocal) {
+                sLocalRegistMap.put(target, receiver);
+            } else {
+                sGlobalRegistMap.put(target, receiver);
+            }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
@@ -37,13 +61,23 @@ public class AutoReceiver {
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
+
     }
 
-    public static void unregist(Activity activity) {
-        SimpleReceiver receiver = sRegistMap.get(activity);
-        if (receiver != null) {
-            receiver.unregister();
-            sRegistMap.remove(activity);
+
+    public static void unbind(Object target, boolean isLocal) {
+        if (isLocal) {
+            SimpleReceiver receiver = sLocalRegistMap.get(target);
+            if (receiver != null) {
+                receiver.unregister();
+                sLocalRegistMap.remove(target);
+            }
+        } else {
+            SimpleReceiver receiver = sGlobalRegistMap.get(target);
+            if (receiver != null) {
+                receiver.unregister();
+                sGlobalRegistMap.remove(target);
+            }
         }
     }
 }

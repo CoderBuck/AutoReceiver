@@ -12,6 +12,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import me.buck.receiver.AutoReceiver;
+import me.buck.receiver.annotation.GlobalAction;
 import me.buck.receiver.annotation.LocalAction;
 
 
@@ -31,13 +32,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        AutoReceiver.regist(this);
+        AutoReceiver.bindLocal(this);
+        AutoReceiver.bindGlobal(this);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        AutoReceiver.unregist(this);
+        AutoReceiver.unbindLocal(this);
+        AutoReceiver.unbindGlobal(this);
     }
 
     @LocalAction(ACTION_1)
@@ -62,31 +65,32 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.btn2)
     public void onMBtn2Clicked() {
-        send(ACTION_2);
+        sendBroadcast(new Intent(ACTION_2));
     }
 
     @OnClick(R.id.btn3)
     public void onMBtn3Clicked() {
         send(ACTION_3);
+        sendBroadcast(new Intent(ACTION_3));
     }
 
     void send(String action) {
         LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(action));
     }
 
-    //@GlobalAction(ACTION_1)
-    //public void test4(Intent intent) {
-    //
-    //}
-    //
-    //@GlobalAction(ACTION_2)
-    //public void test5(Intent intent) {
-    //
-    //}
-    //
-    //@GlobalAction(ACTION_3)
-    //public void test6(Intent intent) {
-    //
-    //}
+    @GlobalAction(ACTION_1)
+    public void test4(Intent intent) {
+        Log.i(TAG, "test4: " + intent.getAction());
+    }
+
+    @GlobalAction(ACTION_2)
+    public void test5(Intent intent) {
+        Log.i(TAG, "test5: " + intent.getAction());
+    }
+
+    @GlobalAction(ACTION_3)
+    public void test6(Intent intent) {
+        Log.i(TAG, "test6: " + intent.getAction());
+    }
 
 }
