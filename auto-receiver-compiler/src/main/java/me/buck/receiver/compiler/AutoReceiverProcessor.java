@@ -2,20 +2,18 @@ package me.buck.receiver.compiler;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -28,7 +26,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
@@ -40,13 +37,14 @@ import me.buck.receiver.annotation.LocalAction;
 @AutoService(Processor.class)
 public class AutoReceiverProcessor extends AbstractProcessor {
 
-    private final ClassName BROADCAST_RECEIVER = ClassName.get("android.content", "BroadcastReceiver");
     private final ClassName CONTEXT            = ClassName.get("android.content", "Context");
     private final ClassName INTENT             = ClassName.get("android.content", "Intent");
+    private final ClassName BROADCAST_RECEIVER = ClassName.get("android.content", "BroadcastReceiver");
+    private final ClassName SIMPLE_RECEIVER    = ClassName.get("me.buck.receiver", "SimpleReceiver");
 
     private Messager    messager;
     private Elements    elementUtils;
-    private Set<String> messages = new HashSet<>();
+    private Set<String> messages = new LinkedHashSet<>();
 
     private int count = 0;
 
@@ -76,60 +74,74 @@ public class AutoReceiverProcessor extends AbstractProcessor {
         log("process " + count);
         Set<? extends Element> localElements = roundEnv.getElementsAnnotatedWith(LocalAction.class);
         Set<? extends Element> globalElements = roundEnv.getElementsAnnotatedWith(GlobalAction.class);
-        log(String.format("size: localElements = %s , globalElements = %s", localElements.size(), globalElements.size()));
 
-        List<ActionItem> actionItems = new ArrayList<>();
-        for (Element element : localElements) {
-            if (!checkAnnotationValid(element, LocalAction.class)) continue;
+        List<ActionItem> localItems = getItems(localElements,true);
+        List<ActionItem> globalItems = getItems(globalElements,false);
 
-            LocalAction action = element.getAnnotation(LocalAction.class);
-            ExecutableElement executableElement = (ExecutableElement) element;
-            TypeElement typeElement = (TypeElement) element.getEnclosingElement();
-            String actionName = action.value();
-            String methodName = executableElement.getSimpleName().toString();
-            String clazzSimpleName = typeElement.getSimpleName().toString();
-            String clazzFullName = typeElement.getQualifiedName().toString();
-            String pkgName = elementUtils.getPackageOf(typeElement).toString();
+        Map<String, List<ActionItem>> localMap = localItems.stream().collect(Collectors.groupingBy(item -> item.clazzFullName));
+        Map<String, List<ActionItem>> globalMap = globalItems.stream().collect(Collectors.groupingBy(item -> item.clazzFullName));
 
-            ActionItem actionItem = new ActionItem(actionName, methodName, clazzSimpleName, clazzFullName, pkgName);
-            actionItems.add(actionItem);
-        }
+        writeFile(localMap, true);
+        writeFile(globalMap, false);
+        return false;
+    }
 
-        if (!actionItems.isEmpty()) {
+    private List<ActionItem> getItems(Set<? extends Element> elements, boolean isLocal) {
+        return elements.stream()
+                .filter(element -> checkAnnotationValid(element, isLocal ? LocalAction.class : GlobalAction.class))
+                .map(element -> {
+                    ExecutableElement executableElement = (ExecutableElement) element;
+                    TypeElement typeElement = (TypeElement) element.getEnclosingElement();
+                    String actionName = isLocal ? element.getAnnotation(LocalAction.class).value() : element.getAnnotation(GlobalAction.class).value();
+                    String methodName = executableElement.getSimpleName().toString();
+                    String clazzSimpleName = typeElement.getSimpleName().toString();
+                    String clazzFullName = typeElement.getQualifiedName().toString();
+                    String pkgName = elementUtils.getPackageOf(typeElement).toString();
+                    return new ActionItem(actionName, methodName, clazzSimpleName, clazzFullName, pkgName);
+                }).collect(Collectors.toList());
+    }
 
-            ActionItem item = actionItems.get(0);
+    private void writeFile(Map<String, List<ActionItem>> map, boolean isLocal) {
+        String endFix = isLocal ? "_LocalReceiver" : "_GlobalReceiver";
+        map.entrySet().forEach(entry -> {
+            String clazzFullName = entry.getKey();
+            List<ActionItem> items = entry.getValue();
+            String clazzSimpleName = items.get(0).clazzSimpleName;
+            String pkgName = items.get(0).pkgName;
 
-            CodeBlock.Builder code = CodeBlock.builder();
-            code.addStatement("String action = intent.getAction()");
-            code.beginControlFlow("switch(action)");
-            for (ActionItem actionItem : actionItems) {
-                String action = actionItem.actionName;
-                String method = actionItem.methodName;
-                String activity = "activity";
-                code.addStatement("case $S: $L.$L(intent); break", action, activity, method);
-            }
-            code.endControlFlow();
+            MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
+                    .addModifiers(Modifier.PUBLIC)
+                    .addParameter(CONTEXT, "context")
+                    .addStatement("super(context)")
+                    .addStatement("mIsLocal = $L", true);
+            items.forEach(item ->
+                    constructor.addStatement("mFilter.addAction($S)", item.actionName)
+            );
 
-
-
-            MethodSpec onReceive = MethodSpec.methodBuilder("onReceive")
+            MethodSpec.Builder onReceive = MethodSpec.methodBuilder("onReceive")
                     .addAnnotation(Override.class)
                     .returns(void.class)
                     .addModifiers(Modifier.PUBLIC)
                     .addParameter(CONTEXT, "context")
-                    .addParameter(INTENT, "intent")
-                    .addCode(code.build())
-                    .build();
+                    .addParameter(INTENT, "intent");
 
-            TypeSpec receiver = TypeSpec.classBuilder(item.clazzSimpleName + "_LocalReceiver")
+            onReceive.addStatement("String action = intent.getAction()");
+            onReceive.beginControlFlow("switch(action)");
+            items.forEach(item ->
+                    onReceive.addStatement("case $S: $L.$L(intent); break", item.actionName, "activity", item.methodName)
+            );
+            onReceive.endControlFlow();
+
+
+            TypeSpec receiver = TypeSpec.classBuilder(clazzSimpleName + endFix)
                     .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                    .superclass(BROADCAST_RECEIVER)
-                    .addField(ClassName.bestGuess(item.clazzFullName),"activity")
-                    .addMethod(onReceive)
+                    .superclass(SIMPLE_RECEIVER)
+                    .addField(ClassName.bestGuess(clazzFullName), "activity")
+                    .addMethod(constructor.build())
+                    .addMethod(onReceive.build())
                     .build();
 
-
-            JavaFile javaFile = JavaFile.builder(actionItems.get(0).pkgName, receiver).
+            JavaFile javaFile = JavaFile.builder(pkgName, receiver).
                     build();
 
             Filer filer = processingEnv.getFiler();
@@ -138,9 +150,7 @@ public class AutoReceiverProcessor extends AbstractProcessor {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-
-        return false;
+        });
     }
 
     private boolean checkAnnotationValid(Element element, Class clazz) {
