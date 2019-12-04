@@ -7,8 +7,6 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -75,8 +73,8 @@ public class AutoReceiverProcessor extends AbstractProcessor {
         Set<? extends Element> localElements = roundEnv.getElementsAnnotatedWith(LocalAction.class);
         Set<? extends Element> globalElements = roundEnv.getElementsAnnotatedWith(GlobalAction.class);
 
-        List<ActionItem> localItems = getItems(localElements,true);
-        List<ActionItem> globalItems = getItems(globalElements,false);
+        List<ActionItem> localItems = getItems(localElements, true);
+        List<ActionItem> globalItems = getItems(globalElements, false);
 
         Map<String, List<ActionItem>> localMap = localItems.stream().collect(Collectors.groupingBy(item -> item.clazzFullName));
         Map<String, List<ActionItem>> globalMap = globalItems.stream().collect(Collectors.groupingBy(item -> item.clazzFullName));
@@ -108,11 +106,15 @@ public class AutoReceiverProcessor extends AbstractProcessor {
             List<ActionItem> items = entry.getValue();
             String clazzSimpleName = items.get(0).clazzSimpleName;
             String pkgName = items.get(0).pkgName;
+            ClassName CLASS_Target = ClassName.bestGuess(clazzFullName);
+            String FIELD_mTarget = "mTarget";
 
             MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
                     .addModifiers(Modifier.PUBLIC)
                     .addParameter(CONTEXT, "context")
+                    .addParameter(CLASS_Target, "target")
                     .addStatement("super(context)")
+                    .addStatement("$L = $L", FIELD_mTarget, "target")
                     .addStatement("mIsLocal = $L", true);
             items.forEach(item ->
                     constructor.addStatement("mFilter.addAction($S)", item.actionName)
@@ -128,7 +130,7 @@ public class AutoReceiverProcessor extends AbstractProcessor {
             onReceive.addStatement("String action = intent.getAction()");
             onReceive.beginControlFlow("switch(action)");
             items.forEach(item ->
-                    onReceive.addStatement("case $S: $L.$L(intent); break", item.actionName, "activity", item.methodName)
+                    onReceive.addStatement("case $S: $L.$L(intent); break", item.actionName, FIELD_mTarget, item.methodName)
             );
             onReceive.endControlFlow();
 
@@ -136,7 +138,7 @@ public class AutoReceiverProcessor extends AbstractProcessor {
             TypeSpec receiver = TypeSpec.classBuilder(clazzSimpleName + endFix)
                     .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                     .superclass(SIMPLE_RECEIVER)
-                    .addField(ClassName.bestGuess(clazzFullName), "activity")
+                    .addField(CLASS_Target, FIELD_mTarget)
                     .addMethod(constructor.build())
                     .addMethod(onReceive.build())
                     .build();
