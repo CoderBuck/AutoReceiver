@@ -90,7 +90,9 @@ public class AutoReceiver {
             Log.d(TAG, "Not found binding class for " + target.getClass().getName());
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("Unable to find binding constructor for " + target.getClass().getName(), e);
-        } catch (IllegalAccessException | InstantiationException e) {
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Unable to invoke " + constructor, e);
+        } catch (InstantiationException e) {
             throw new RuntimeException("Unable to invoke " + constructor, e);
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
