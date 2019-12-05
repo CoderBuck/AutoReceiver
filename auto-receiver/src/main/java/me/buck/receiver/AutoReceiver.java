@@ -16,13 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by gwf on 2019/12/3
  */
 public class AutoReceiver {
-    private static final String TAG = "AutoReceiver";
+    private static final String TAG            = "AutoReceiver";
+    private static final String END_FIX_LOCAL  = "_LocalReceiver";
+    private static final String END_FIX_GLOBAL = "_GlobalReceiver";
 
-    private static Map<Object, SimpleReceiver> sLocalRegistMap = new ConcurrentHashMap<>();
-    private static Map<Object, SimpleReceiver> sGlobalRegistMap = new ConcurrentHashMap<>();
+    private static Map<Object, SimpleReceiver> sLocalRegisterMap  = new ConcurrentHashMap<>();
+    private static Map<Object, SimpleReceiver> sGlobalRegisterMap = new ConcurrentHashMap<>();
 
-    private static String END_FIX_LOCAL = "_LocalReceiver";
-    private static String END_FIX_GLOBAL = "_GlobalReceiver";
 
     public static void bindLocal(Activity activity) {
         bind(activity, activity, true);
@@ -33,7 +33,7 @@ public class AutoReceiver {
     }
 
     public static void unbindLocal(Activity activity) {
-        unbind(activity,true);
+        unbind(activity, true);
     }
 
     public static void unbindGlobal(Activity activity) {
@@ -49,7 +49,7 @@ public class AutoReceiver {
     }
 
     public static void unbindLocal(View view) {
-        unbind(view,true);
+        unbind(view, true);
     }
 
     public static void unbindGlobal(View view) {
@@ -63,7 +63,7 @@ public class AutoReceiver {
     public static void bindGlobal(Fragment fragment) { bind(fragment.getContext(), fragment, false); }
 
     public static void unbindLocal(Fragment fragment) {
-        unbind(fragment,true);
+        unbind(fragment, true);
     }
 
     public static void unbindGlobal(Fragment fragment) {
@@ -71,8 +71,8 @@ public class AutoReceiver {
     }
 
     public static void bind(Context context, Object target, boolean isLocal) {
-        if (isLocal && sLocalRegistMap.get(target) != null) return;
-        if (!isLocal && sGlobalRegistMap.get(target) != null) return;
+        if (isLocal && sLocalRegisterMap.get(target) != null) return;
+        if (!isLocal && sGlobalRegisterMap.get(target) != null) return;
         String endFix = isLocal ? END_FIX_LOCAL : END_FIX_GLOBAL;
         String receiverClassName = target.getClass().getCanonicalName() + endFix;
         Constructor<?> constructor = null;
@@ -82,9 +82,9 @@ public class AutoReceiver {
             SimpleReceiver receiver = (SimpleReceiver) constructor.newInstance(context, target);
             receiver.register();
             if (isLocal) {
-                sLocalRegistMap.put(target, receiver);
+                sLocalRegisterMap.put(target, receiver);
             } else {
-                sGlobalRegistMap.put(target, receiver);
+                sGlobalRegisterMap.put(target, receiver);
             }
         } catch (ClassNotFoundException e) {
             Log.d(TAG, "Not found binding class for " + target.getClass().getName());
@@ -104,22 +104,19 @@ public class AutoReceiver {
         }
     }
 
-
     public static void unbind(Object target, boolean isLocal) {
         if (isLocal) {
-            SimpleReceiver receiver = sLocalRegistMap.get(target);
+            SimpleReceiver receiver = sLocalRegisterMap.get(target);
             if (receiver != null) {
                 receiver.unregister();
-                sLocalRegistMap.remove(target);
+                sLocalRegisterMap.remove(target);
             }
         } else {
-            SimpleReceiver receiver = sGlobalRegistMap.get(target);
+            SimpleReceiver receiver = sGlobalRegisterMap.get(target);
             if (receiver != null) {
                 receiver.unregister();
-                sGlobalRegistMap.remove(target);
+                sGlobalRegisterMap.remove(target);
             }
         }
     }
-
-    //private static
 }
