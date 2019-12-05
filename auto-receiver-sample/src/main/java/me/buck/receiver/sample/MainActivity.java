@@ -93,4 +93,19 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "test6: " + intent.getAction());
     }
 
+
+    class Buck {
+
+        @LocalAction(ACTION_1)
+        void test1(Intent intent) {
+            Log.i(TAG, "test1: " + intent.getAction());
+        }
+
+        @GlobalAction(ACTION_2)
+        void test5(Intent intent) {
+            Log.i(TAG, "test5: " + intent.getAction());
+        }
+    }
+
 }
+
