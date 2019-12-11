@@ -45,9 +45,9 @@ task clean(type: Delete) {
     delete "/repo"
 }
 
-task pubLib(){
-    clean
-    auto-receiver-sample.clean
-}
+//task pubLib(){
+//    clean
+//    auto-receiver-sample.clean
+//}
 
 
