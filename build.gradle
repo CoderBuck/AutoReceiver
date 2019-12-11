@@ -23,6 +23,31 @@ allprojects {
     }
 }
 
+public static void customPom(Object pom) {
+    pom.withXml {
+        Node root = asNode()
+        root.get("dependencies").get(0).get("dependency").each {
+            Node groupIdNode = it.get("groupId").get(0)
+            Node artifactIdNode = it.get("artifactId").get(0)
+            Node versionNode = it.get("version").get(0)
+            if (artifactIdNode.children().get(0) == "auto-receiver-annotation") {
+                def groupId = new Node(null, "groupId", "me.buck")
+                def version = new Node(null, "version", "0.1")
+                groupIdNode.replaceNode(groupId)
+                versionNode.replaceNode(version)
+            }
+        }
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
+    delete "/repo"
 }
+
+task pubLib(){
+    clean
+    auto-receiver-sample.clean
+}
+
+

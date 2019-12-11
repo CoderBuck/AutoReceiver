@@ -1,4 +1,5 @@
 apply plugin: 'java-library'
+apply plugin: 'maven-publish'
 
 dependencies {
     implementation project(path: ':auto-receiver-annotation')
@@ -9,3 +10,30 @@ dependencies {
 
 sourceCompatibility = "8"
 targetCompatibility = "8"
+
+task sourceJar(type: Jar){
+    from sourceSets.main.java.srcDirs
+    classifier "sources"
+}
+
+publishing {
+    publications {
+        lib(MavenPublication) {
+            groupId 'me.buck'
+            artifactId 'auto-receiver-compiler'
+            version '0.1'
+            from components.java
+            artifact(sourceJar)
+            println(pom.getClass())
+            println(it.getClass())
+
+            customPom(pom)
+        }
+    }
+    repositories {
+        maven {
+            url "../repo"
+        }
+    }
+}
+

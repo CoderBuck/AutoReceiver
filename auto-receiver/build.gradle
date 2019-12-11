@@ -26,12 +26,6 @@ android {
 boolean isPublish = false
 
 dependencies {
-//    if (isPublish) {
-//        api 'me.buck:auto-receiver-annotation:0.1'
-//    } else {
-//        api project(path: ':auto-receiver-annotation')
-//    }
-
     api project(path: ':auto-receiver-annotation')
     implementation 'androidx.appcompat:appcompat:1.1.0'
     testImplementation 'junit:junit:4.12'
@@ -57,36 +51,16 @@ publishing {
             from components.android
             artifact(sourceJar)
 
-            pom.withXml {
-                Node root = asNode()
-                root.get("dependencies").get(0).get("dependency").each {
-                    Node groupIdNode = it.get("groupId").get(0)
-                    Node artifactIdNode = it.get("artifactId").get(0)
-                    Node versionNode = it.get("version").get(0)
-                    if(artifactIdNode.children().get(0) == "auto-receiver-annotation"){
-
-                        def groupId = new Node(null, "groupId", "me.buck")
-                        def version = new Node(null, "version", "0.1")
-                        groupIdNode.replaceNode(groupId)
-                        versionNode.replaceNode(version)
-                    }
-                }
-            }
+            customPom(pom)
         }
     }
     repositories {
         maven {
-            url "$buildDir/repo"
-//            url 'http://172.16.6.154:9081/repository/releases/'
-//            credentials {
-//                username 'KDV_TP_NexVision_dev'
-//                password 'kdvtpnv'
-//            }
+            url "../repo"
         }
     }
 }
 
-// 执行 publish 时先执行build
-//publish.dependsOn clean
+
 
 

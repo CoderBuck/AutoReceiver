@@ -1,8 +1,33 @@
 apply plugin: 'java-library'
+apply plugin: 'maven-publish'
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 sourceCompatibility = "8"
 targetCompatibility = "8"
+
+task sourceJar(type: Jar){
+    from sourceSets.main.java.srcDirs
+    classifier "sources"
+}
+
+publishing {
+    publications {
+        lib(MavenPublication) {
+            groupId 'me.buck'
+            artifactId 'auto-receiver-annotation'
+            version '0.1'              //正式版：发布到 releases
+            from components.java
+            artifact(sourceJar)
+
+            customPom(pom)
+        }
+    }
+    repositories {
+        maven {
+            url "../repo"
+        }
+    }
+}
+
