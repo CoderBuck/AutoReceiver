@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
-
+apply plugin: 'maven-publish'
+apply plugin: 'digital.wup.android-maven-publish'
 android {
     compileSdkVersion 29
 
@@ -22,13 +23,70 @@ android {
 
 }
 
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api project(path: ':auto-receiver-annotation')
+boolean isPublish = false
 
+dependencies {
+//    if (isPublish) {
+//        api 'me.buck:auto-receiver-annotation:0.1'
+//    } else {
+//        api project(path: ':auto-receiver-annotation')
+//    }
+
+    api project(path: ':auto-receiver-annotation')
     implementation 'androidx.appcompat:appcompat:1.1.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
 }
+
+task sourceJar(type: Jar){
+    from android.sourceSets.main.java.srcDirs
+    classifier "sources"
+}
+
+publishing {
+    isPublish = true
+    publications {
+        isPublish = true
+        mavenAar(MavenPublication) {
+            isPublish = true
+            groupId 'me.buck'
+            artifactId 'auto-receiver'
+            version '0.1'               //正式版：发布到 releases
+            from components.android
+            artifact(sourceJar)
+
+            pom.withXml {
+                Node root = asNode()
+                root.get("dependencies").get(0).get("dependency").each {
+                    Node groupIdNode = it.get("groupId").get(0)
+                    Node artifactIdNode = it.get("artifactId").get(0)
+                    Node versionNode = it.get("version").get(0)
+                    if(artifactIdNode.children().get(0) == "auto-receiver-annotation"){
+
+                        def groupId = new Node(null, "groupId", "me.buck")
+                        def version = new Node(null, "version", "0.1")
+                        groupIdNode.replaceNode(groupId)
+                        versionNode.replaceNode(version)
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url "$buildDir/repo"
+//            url 'http://172.16.6.154:9081/repository/releases/'
+//            credentials {
+//                username 'KDV_TP_NexVision_dev'
+//                password 'kdvtpnv'
+//            }
+        }
+    }
+}
+
+// 执行 publish 时先执行build
+//publish.dependsOn clean
+
+
