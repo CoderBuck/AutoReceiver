@@ -19,9 +19,9 @@ task sourceJar(type: Jar){
 publishing {
     publications {
         lib(MavenPublication) {
-            groupId 'me.buck'
-            artifactId 'auto-receiver-compiler'
-            version '0.1'
+            groupId lib_group
+            artifactId lib_artifactId_auto_receiver_compiler
+            version lib_version
             from components.java
             artifact(sourceJar)
             println(pom.getClass())

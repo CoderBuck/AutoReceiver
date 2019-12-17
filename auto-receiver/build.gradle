@@ -23,7 +23,6 @@ android {
 
 }
 
-boolean isPublish = false
 
 dependencies {
     api project(path: ':auto-receiver-annotation')
@@ -40,14 +39,11 @@ task sourceJar(type: Jar){
 }
 
 publishing {
-    isPublish = true
     publications {
-        isPublish = true
         mavenAar(MavenPublication) {
-            isPublish = true
-            groupId 'me.buck'
-            artifactId 'auto-receiver'
-            version '0.1'               //正式版：发布到 releases
+            groupId lib_group
+            artifactId lib_artifactId_auto_receiver
+            version lib_version              //正式版：发布到 releases
             from components.android
             artifact(sourceJar)
 
@@ -60,6 +56,11 @@ publishing {
         }
     }
 }
+
+
+//task printProperties {
+//    println project.lib_version
+//}
 
 
 

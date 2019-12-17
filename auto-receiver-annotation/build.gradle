@@ -15,13 +15,11 @@ task sourceJar(type: Jar){
 publishing {
     publications {
         lib(MavenPublication) {
-            groupId 'me.buck'
-            artifactId 'auto-receiver-annotation'
-            version '0.1'              //正式版：发布到 releases
+            groupId lib_group
+            artifactId lib_artifactId_auto_receiver_annotation
+            version lib_version             //正式版：发布到 releases
             from components.java
             artifact(sourceJar)
-
-            customPom(pom)
         }
     }
     repositories {
