@@ -22,7 +22,7 @@ buildscript {
 
 allprojects {
     repositories {
-        maven { url "file:///root/Github/AutoReceiver/repo"}
+//        maven { url "file:///root/Github/AutoReceiver/repo"}
         google()
         jcenter()
     }
