@@ -2,7 +2,7 @@
 
 ext {
     lib_group = "me.buck"
-    lib_version = "0.1"
+    lib_version = "0.1.2"
     lib_artifactId_auto_receiver = "auto-receiver"
     lib_artifactId_auto_receiver_annotation = "auto-receiver-annotation"
     lib_artifactId_auto_receiver_compiler = "auto-receiver-compiler"
@@ -17,6 +17,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.5.2'
         classpath 'digital.wup:android-maven-publish:3.6.2'
+        classpath 'com.novoda:bintray-release:0.9.2'
     }
 }
 
@@ -53,22 +54,21 @@ task clean(type: Delete) {
 task cleanBuildPublish(type: GradleBuild) {
     tasks = [
             'clean',
-
             ':auto-receiver:clean',
             ':auto-receiver:build',
             ':auto-receiver:publish',
+            ':auto-receiver:bintrayUpload',
             ':auto-receiver-annotation:clean',
             ':auto-receiver-annotation:build',
             ':auto-receiver-annotation:publish',
+            ':auto-receiver-annotation:bintrayUpload',
             ':auto-receiver-compiler:clean',
             ':auto-receiver-compiler:build',
-            ':auto-receiver-compiler:publish'
+            ':auto-receiver-compiler:publish',
+            ':auto-receiver-compiler:bintrayUpload'
     ]
 }
 
-task a {
-    println(projectDir)
-}
 
 
 

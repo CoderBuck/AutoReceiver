@@ -1,5 +1,6 @@
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
+apply plugin: 'com.novoda.bintray-release'
 
 dependencies {
 }
@@ -14,7 +15,7 @@ task sourceJar(type: Jar){
 
 publishing {
     publications {
-        lib(MavenPublication) {
+        maven(MavenPublication) {
             groupId lib_group
             artifactId lib_artifactId_auto_receiver_annotation
             version lib_version             //正式版：发布到 releases
@@ -27,5 +28,18 @@ publishing {
             url "../repo"
         }
     }
+}
+
+publish {
+    userOrg = 'buck'
+    groupId = lib_group
+    artifactId = lib_artifactId_auto_receiver_annotation
+    publishVersion = lib_version
+    desc = 'Oh hi, this is a nice description for a project, right?'
+    website = 'https://github.com/CoderBuck/AutoReceiver'
+
+    bintrayUser = "buck"
+    bintrayKey = "8d3d6a70879fbfdf1ff37ee8c4f413f5184873e2"
+    autoPublish = true
 }
 
