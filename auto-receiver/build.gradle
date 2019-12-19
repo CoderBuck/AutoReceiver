@@ -65,6 +65,8 @@ publish {
     publishVersion = lib_version
     desc = 'Oh hi, this is a nice description for a project, right?'
     website = 'https://github.com/CoderBuck/AutoReceiver'
+    autoPublish = true
+    dryRun=false
 
     bintrayUser = 'buck'
     bintrayKey = '8d3d6a70879fbfdf1ff37ee8c4f413f5184873e2'
