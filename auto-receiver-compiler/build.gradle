@@ -2,6 +2,11 @@ apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'com.novoda.bintray-release'
 
+Properties properties = new Properties()
+properties.load(rootProject.file('local.properties').newDataInputStream())
+def bintray_user = properties.getProperty("bintray_user")
+def bintray_key = properties.getProperty("bintray_key")
+
 dependencies {
     implementation project(path: ':auto-receiver-annotation')
     implementation 'com.squareup:javapoet:1.11.1'
@@ -25,9 +30,6 @@ publishing {
             version lib_version
             from components.java
             artifact(sourceJar)
-            println(pom.getClass())
-            println(it.getClass())
-
             customPom(pom)
         }
     }
@@ -48,7 +50,7 @@ publish {
     autoPublish = true
     dryRun=false
 
-    bintrayUser = "buck"
-    bintrayKey = "8d3d6a70879fbfdf1ff37ee8c4f413f5184873e2"
+    bintrayUser = bintray_user
+    bintrayKey = bintray_key
 }
 

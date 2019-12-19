@@ -2,6 +2,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'com.novoda.bintray-release'
+
+Properties properties = new Properties()
+properties.load(rootProject.file('local.properties').newDataInputStream())
+def bintray_user = properties.getProperty("bintray_user")
+def bintray_key = properties.getProperty("bintray_key")
+
 android {
     compileSdkVersion 29
 
@@ -68,14 +74,9 @@ publish {
     autoPublish = true
     dryRun=false
 
-    bintrayUser = 'buck'
-    bintrayKey = '8d3d6a70879fbfdf1ff37ee8c4f413f5184873e2'
+    bintrayUser = bintray_user
+    bintrayKey = bintray_key
 }
-
-
-//task printProperties {
-//    println project.lib_version
-//}
 
 
 

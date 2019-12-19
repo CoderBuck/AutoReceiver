@@ -35,9 +35,9 @@ dependencies {
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
 
 
-    implementation project(':auto-receiver')
-    annotationProcessor project(':auto-receiver-compiler')
+//    implementation project(':auto-receiver')
+//    annotationProcessor project(':auto-receiver-compiler')
 
-//    implementation 'me.buck:auto-receiver:0.1'
-//    annotationProcessor 'me.buck:auto-receiver-compiler:0.1'
+    implementation 'me.buck:auto-receiver:0.1.4'
+    annotationProcessor 'me.buck:auto-receiver-compiler:0.1.4'
 }
