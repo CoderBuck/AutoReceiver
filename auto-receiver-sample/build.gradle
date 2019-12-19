@@ -38,6 +38,6 @@ dependencies {
 //    implementation project(':auto-receiver')
 //    annotationProcessor project(':auto-receiver-compiler')
 
-    implementation 'me.buck:auto-receiver:0.1.4'
-    annotationProcessor 'me.buck:auto-receiver-compiler:0.1.4'
+    implementation 'me.buck:auto-receiver:0.2.0'
+    annotationProcessor 'me.buck:auto-receiver-compiler:0.2.0'
 }
