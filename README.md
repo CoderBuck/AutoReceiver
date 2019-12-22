@@ -1,30 +1,32 @@
+
+
 # AutoReceiver
-通过注解自动生成广播接收器
+
+利用编译时注解自动生成广播接收器，从而减少 BroadcastReceiver 样板代码的编写。
+
+这里提供了两个注解`LocalAction`和`GlobalAction`用来接收本地广播和全局广播。用这两个注解标记的方法必须带有一个`Intent`参数并且不能是`private`方法。使用 `AutoReceiver.bind()`和`AutoReceiver.unbind()`方法来注册/取消注册广播。
+
+## 添加依赖
 
 ```
 implementation 'me.buck:auto-receiver:0.2.0'
 annotationProcessor 'me.buck:auto-receiver-compiler:0.2.0'
 ```
 
+## 使用
 ```java
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-
-    private static final String ACTION_1 = "action-1";
-    private static final String ACTION_2 = "action-2";
-    private static final String ACTION_3 = "action-3";
-
-    @BindView(R.id.btn1) Button mBtn1;
-    @BindView(R.id.btn2) Button mBtn2;
-    @BindView(R.id.btn3) Button mBtn3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
         AutoReceiver.bindLocal(this);
         AutoReceiver.bindGlobal(this);
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent("action-1"));
+        sendBroadcast(new Intent("action-2"));
     }
 
     @Override
@@ -34,28 +36,14 @@ public class MainActivity extends AppCompatActivity {
         AutoReceiver.unbindGlobal(this);
     }
 
-    @LocalAction(ACTION_1)
-    public void test1(Intent intent) {
-        Log.i(TAG, "test1: " + intent.getAction());
-    }
-    
-    @GlobalAction(ACTION_2)
-    public void test5(Intent intent) {
-        Log.i(TAG, "test5: " + intent.getAction());
+    @LocalAction("action-1")
+    void onAction1(Intent intent) {
+        Log.d(TAG, "onAction1: " + intent.getAction());
     }
 
-    @OnClick(R.id.btn1)
-    public void onMBtn1Clicked() {
-        send(ACTION_1);
-    }
-
-    @OnClick(R.id.btn2)
-    public void onMBtn2Clicked() {
-        sendBroadcast(new Intent(ACTION_2));
-    }
-
-    void send(String action) {
-        LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(action));
+    @GlobalAction("action-2")
+    void onAction2(Intent intent) {
+        Log.d(TAG, "onAction2: " + intent.getAction());
     }
 }
 ```
