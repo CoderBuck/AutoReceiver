@@ -2,7 +2,7 @@
 
 # AutoReceiver
 
-利用编译时注解自动生成广播接收器，从而减少 BroadcastReceiver 样板代码的编写。
+利用编译时注解自动生成广播接收器，从而减少 `BroadcastReceiver` 样板代码的编写。
 
 这里提供了两个注解`LocalAction`和`GlobalAction`用来接收本地广播和全局广播。用这两个注解标记的方法必须带有一个`Intent`参数并且不能是`private`方法。使用 `AutoReceiver.bind()`和`AutoReceiver.unbind()`方法来注册/取消注册广播。
 
