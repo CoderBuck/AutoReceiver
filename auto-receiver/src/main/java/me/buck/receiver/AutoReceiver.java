@@ -1,6 +1,7 @@
 package me.buck.receiver;
 
 import android.app.Activity;
+import android.app.Service;
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
@@ -38,6 +39,22 @@ public class AutoReceiver {
 
     public static void unbindGlobal(Activity activity) {
         unbind(activity, false);
+    }
+
+    public static void bindLocal(Service service) {
+        bind(service, service, true);
+    }
+
+    public static void bindGlobal(Service service) {
+        bind(service, service, false);
+    }
+
+    public static void unbindLocal(Service service) {
+        unbind(service, true);
+    }
+
+    public static void unbindGlobal(Service service) {
+        unbind(service, false);
     }
 
     public static void bindLocal(View view) {
@@ -82,6 +99,24 @@ public class AutoReceiver {
         bind(context, target, false);
     }
 
+    public static void bindLocal(Context context, Object target) {
+        bind(context, target, true);
+    }
+
+    public static void bindLocal(Fragment fragment, Object target) {
+        bind(fragment.getContext(), target, true);
+    }
+
+    public static void bindGlobal(Context context, Object target) {
+        bind(context, target, false);
+    }
+
+    public static void bindGlobal(Fragment fragment, Object target) {
+        bind(fragment.getContext(), target, false);
+    }
+
+
+
     public static void bind(Context context, Object target, boolean isLocal) {
         if (isLocal && sLocalRegisterMap.get(target) != null) return;
         if (!isLocal && sGlobalRegisterMap.get(target) != null) return;
@@ -120,6 +155,14 @@ public class AutoReceiver {
 
     public static void unbind(Object target) {
         unbind(target, true);
+        unbind(target, false);
+    }
+
+    public static void unbindLocal(Object target) {
+        unbind(target, true);
+    }
+
+    public static void unbindGlobal(Object target) {
         unbind(target, false);
     }
 
