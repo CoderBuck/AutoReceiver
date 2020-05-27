@@ -2,7 +2,7 @@
 
 ext {
     lib_group = "me.buck"
-    lib_version = "0.2.0"
+    lib_version = "0.2.2"
     lib_artifactId_auto_receiver = "auto-receiver"
     lib_artifactId_auto_receiver_annotation = "auto-receiver-annotation"
     lib_artifactId_auto_receiver_compiler = "auto-receiver-compiler"

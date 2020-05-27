@@ -9,8 +9,8 @@
 ## 添加依赖
 
 ```
-implementation 'me.buck:auto-receiver:0.2.0'
-annotationProcessor 'me.buck:auto-receiver-compiler:0.2.0'
+implementation 'me.buck:auto-receiver:0.2.2'
+annotationProcessor 'me.buck:auto-receiver-compiler:0.2.2'
 ```
 
 ## 使用

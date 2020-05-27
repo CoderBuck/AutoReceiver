@@ -60,7 +60,9 @@ public class AutoReceiver {
         bind(fragment.getContext(), fragment, true);
     }
 
-    public static void bindGlobal(Fragment fragment) { bind(fragment.getContext(), fragment, false); }
+    public static void bindGlobal(Fragment fragment) {
+        bind(fragment.getContext(), fragment, false);
+    }
 
     public static void unbindLocal(Fragment fragment) {
         unbind(fragment, true);
@@ -68,6 +70,16 @@ public class AutoReceiver {
 
     public static void unbindGlobal(Fragment fragment) {
         unbind(fragment, false);
+    }
+
+    public static void bind(Fragment fragment, Object target) {
+        bind(fragment.getContext(), target, true);
+        bind(fragment.getContext(), target, false);
+    }
+
+    public static void bind(Context context, Object target) {
+        bind(context, target, true);
+        bind(context, target, false);
     }
 
     public static void bind(Context context, Object target, boolean isLocal) {
@@ -104,6 +116,11 @@ public class AutoReceiver {
             }
             throw new RuntimeException("Unable to create binding instance.", cause);
         }
+    }
+
+    public static void unbind(Object target) {
+        unbind(target, true);
+        unbind(target, false);
     }
 
     public static void unbind(Object target, boolean isLocal) {
